@@ -1,0 +1,110 @@
+-- src/db/migrations/schema.sql
+
+CREATE TABLE IF NOT EXISTS USERS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS AUTHORS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    country TEXT
+);
+
+CREATE TABLE IF NOT EXISTS GENRES (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS BOOKS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    author_id INTEGER,
+    genre_id INTEGER,
+    isbn TEXT UNIQUE,
+    year INTEGER,
+    publisher TEXT,
+    total_copies INTEGER DEFAULT 0,
+    description TEXT,
+    FOREIGN KEY (author_id) REFERENCES AUTHORS(id),
+    FOREIGN KEY (genre_id) REFERENCES GENRES(id)
+);
+
+CREATE TABLE IF NOT EXISTS COPIES (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    book_id INTEGER,
+    inventory_number TEXT UNIQUE NOT NULL,
+    condition TEXT,
+    status TEXT DEFAULT 'available',
+    acquired_date DATE,
+    FOREIGN KEY (book_id) REFERENCES BOOKS(id)
+);
+
+CREATE TABLE IF NOT EXISTS CLASSES (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    grade_number INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS READERS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    reader_type TEXT NOT NULL,
+    class_id INTEGER,
+    phone TEXT,
+    registered_at DATE DEFAULT CURRENT_DATE,
+    is_active BOOLEAN DEFAULT 1,
+    FOREIGN KEY (class_id) REFERENCES CLASSES(id)
+);
+
+CREATE TABLE IF NOT EXISTS LOANS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    copy_id INTEGER,
+    reader_id INTEGER,
+    issued_by INTEGER,
+    issue_date DATE DEFAULT CURRENT_DATE,
+    due_date DATE NOT NULL,
+    return_date DATE,
+    status TEXT DEFAULT 'active',
+    FOREIGN KEY (copy_id) REFERENCES COPIES(id),
+    FOREIGN KEY (reader_id) REFERENCES READERS(id),
+    FOREIGN KEY (issued_by) REFERENCES USERS(id)
+);
+
+CREATE TABLE IF NOT EXISTS RESERVATIONS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    book_id INTEGER,
+    reader_id INTEGER,
+    reserved_at DATE DEFAULT CURRENT_DATE,
+    expires_at DATE NOT NULL,
+    status TEXT DEFAULT 'active',
+    FOREIGN KEY (book_id) REFERENCES BOOKS(id),
+    FOREIGN KEY (reader_id) REFERENCES READERS(id)
+);
+
+CREATE TABLE IF NOT EXISTS FINES (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    loan_id INTEGER,
+    reader_id INTEGER,
+    days_overdue INTEGER,
+    amount DECIMAL(10,2),
+    is_paid BOOLEAN DEFAULT 0,
+    paid_at DATE,
+    FOREIGN KEY (loan_id) REFERENCES LOANS(id),
+    FOREIGN KEY (reader_id) REFERENCES READERS(id)
+);
+
+CREATE TABLE IF NOT EXISTS BACKUP_LOG (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    file_path TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by INTEGER,
+    status TEXT NOT NULL,
+    FOREIGN KEY (created_by) REFERENCES USERS(id)
+);

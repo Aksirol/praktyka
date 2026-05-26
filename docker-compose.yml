@@ -1,5 +1,19 @@
-# docker-compose.yml
 services:
+  # Контейнер для одноразової ініціалізації БД
+  db-init:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - ./src:/app/src
+      - library_data:/app/data
+    environment:
+      - DB_PATH=/app/data/library.db
+      - ADMIN_USERNAME=sysadmin
+      - ADMIN_PASSWORD=supersecret_pass
+    command: python src/db/seed_data.py
+
+  # Основний застосунок
   app:
     build:
       context: .
@@ -8,8 +22,15 @@ services:
       - ./src:/app/src
       - ./tests:/app/tests
       - ./docs:/app/docs
+      - library_data:/app/data
     environment:
       - PYTHONUNBUFFERED=1
-      # Для прокидання графічного інтерфейсу з Docker на хост-машину (якщо використовується WSL або Linux)
+      - DB_PATH=/app/data/library.db
       - DISPLAY=${DISPLAY}
+      - PYTHONPATH=/app
     network_mode: host
+    depends_on:
+      - db-init
+
+volumes:
+  library_data:
