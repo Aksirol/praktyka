@@ -8,8 +8,10 @@ class AuthService:
         self.db = db_manager
 
     def authenticate(self, username: str, password: str) -> bool:
-        """Перевіряє облікові дані та відкриває сесію у разі успіху."""
-        user = self.db.fetch_one("SELECT * FROM USERS WHERE username = ?", (username,))
+        """Перевіряє облікові дані активного користувача та відкриває сесію."""
+        # ВИПРАВЛЕННЯ: Додано умову AND is_active = 1
+        query = "SELECT * FROM USERS WHERE username = ? AND is_active = 1"
+        user = self.db.fetch_one(query, (username,))
 
         if user and DatabaseManager.check_password(password, user['password_hash']):
             SessionManager.login(user)

@@ -34,8 +34,17 @@ class ReaderService:
             WHERE l.reader_id = ? AND l.return_date IS NOT NULL
         """, (reader_id,))
 
+        # ВИПРАВЛЕННЯ БАГУ: Додаємо вибірку активних бронювань читача
+        reservations = self.db.fetch_all("""
+            SELECT r.id, b.title, r.reserved_at, r.expires_at, r.status
+            FROM RESERVATIONS r
+            JOIN BOOKS b ON r.book_id = b.id
+            WHERE r.reader_id = ? AND r.status = 'active'
+        """, (reader_id,))
+
         return {
             "profile": profile,
             "active_loans": active_loans,
-            "history": history
+            "history": history,
+            "reservations": reservations  # Тепер ключ гарантовано існує
         }

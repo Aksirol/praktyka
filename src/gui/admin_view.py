@@ -20,12 +20,12 @@ class AdminView(QWidget):
         list_group = QGroupBox("Користувачі системи")
         list_layout = QVBoxLayout()
         self.table = QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["ID", "Логін", "Роль", "Створено"])
+        self.table.setColumnCount(5)  # Збільшено до 5 стовпців для статусу
+        self.table.setHorizontalHeaderLabels(["ID", "Логін", "Роль", "Статус", "Створено"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         list_layout.addWidget(self.table)
 
-        self.delete_btn = QPushButton("Видалити обраного користувача")
+        self.delete_btn = QPushButton("Деактивувати обраного користувача")
         self.delete_btn.setStyleSheet("color: white; background-color: #d9534f;")
         self.delete_btn.clicked.connect(self.delete_user)
         list_layout.addWidget(self.delete_btn)
@@ -50,18 +50,20 @@ class AdminView(QWidget):
 
         add_group.setLayout(add_layout)
 
-        layout.addWidget(list_group, 60)
-        layout.addWidget(add_group, 40)
+        layout.addWidget(list_group, 65)
+        layout.addWidget(add_group, 35)
         self.setLayout(layout)
 
     def load_users(self):
-        users = self.db.fetch_all("SELECT id, username, role, created_at FROM USERS ORDER BY id")
+        users = self.db.fetch_all("SELECT id, username, role, is_active, created_at FROM USERS ORDER BY id")
         self.table.setRowCount(len(users))
         for i, u in enumerate(users):
+            status_text = "Активний" if u['is_active'] == 1 else "Заблокований"
             self.table.setItem(i, 0, QTableWidgetItem(str(u['id'])))
             self.table.setItem(i, 1, QTableWidgetItem(u['username']))
             self.table.setItem(i, 2, QTableWidgetItem(u['role']))
-            self.table.setItem(i, 3, QTableWidgetItem(str(u['created_at'])))
+            self.table.setItem(i, 3, QTableWidgetItem(status_text))
+            self.table.setItem(i, 4, QTableWidgetItem(str(u['created_at'])))
 
     @require_role(["Адміністратор"])
     def add_user(self, *args, **kwargs):
@@ -75,7 +77,7 @@ class AdminView(QWidget):
         hashed = DatabaseManager.hash_password(password)
         try:
             self.db.execute_query(
-                "INSERT INTO USERS (username, password_hash, role) VALUES (?, ?, ?)",
+                "INSERT INTO USERS (username, password_hash, role, is_active) VALUES (?, ?, ?, 1)",
                 (username, hashed, role)
             )
             QMessageBox.information(self, "Успіх", "Користувача успішно додано!")
@@ -96,11 +98,13 @@ class AdminView(QWidget):
         curr_user = SessionManager.get_current_user()
 
         if user_id == curr_user['id']:
-            return QMessageBox.critical(self, "Відмовлено", "Ви не можете видалити власний обліковий запис!")
+            return QMessageBox.critical(self, "Відмовлено", "Ви не можете деактивувати власний обліковий запис!")
 
-        reply = QMessageBox.question(self, "Підтвердження", "Ви впевнені, що хочете видалити користувача?",
+        reply = QMessageBox.question(self, "Підтвердження",
+                                     "Ви впевнені, що хочете деактивувати цього користувача? Він втратить доступ до системи.",
                                      QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
-            self.db.execute_query("DELETE FROM USERS WHERE id = ?", (user_id,))
+            # ВИПРАВЛЕННЯ: М'яка деактивація замість жорсткого DELETE
+            self.db.execute_query("UPDATE USERS SET is_active = 0 WHERE id = ?", (user_id,))
             self.load_users()
-            QMessageBox.information(self, "Успіх", "Користувача видалено.")
+            QMessageBox.information(self, "Успіх", "Користувача успішно деактивовано.")
