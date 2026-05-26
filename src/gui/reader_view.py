@@ -48,7 +48,7 @@ class ReaderRegistrationForm(QWidget):
             self.class_cb.addItem(c['name'], c['id'])
 
     @require_role(["Адміністратор", "Бібліотекар"])
-    def register(self, *args, kwargs):
+    def register(self, *args, **kwargs):
         first_name = self.first_name_input.text().strip()
         last_name = self.last_name_input.text().strip()
         reader_type = self.type_cb.currentText()

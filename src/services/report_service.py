@@ -26,17 +26,18 @@ class ReportService:
             print(f"Попередження: Шрифт не знайдено за шляхом {font_path}. Кирилиця може відображатись некоректно.")
 
     def _generate_pdf(self, filename: str, title: str, headers: list, data: list) -> str:
-        """Базовий метод для створення PDF-файлу з таблицею."""
-        reports_dir = "docs/reports"
+        # Використовуємо абсолютний шлях до кореня
+        from reportlab.lib.styles import ParagraphStyle
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+        reports_dir = os.path.join(base_dir, "docs", "reports")
         os.makedirs(reports_dir, exist_ok=True)
         filepath = os.path.join(reports_dir, filename)
 
         doc = SimpleDocTemplate(filepath, pagesize=A4)
         styles = getSampleStyleSheet()
 
-        # Налаштування стилю заголовка під наш шрифт
-        title_style = styles['Heading1']
-        title_style.fontName = self.font_name
+        # Безпечне створення власного стилю
+        title_style = ParagraphStyle('CustomH1', parent=styles['Heading1'], fontName=self.font_name)
 
         elements = []
         elements.append(Paragraph(title, title_style))

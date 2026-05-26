@@ -1,6 +1,6 @@
 # src/db/seed_data.py
 import os
-from db_manager import DatabaseManager
+from src.db.db_manager import DatabaseManager
 
 
 def initialize_database():

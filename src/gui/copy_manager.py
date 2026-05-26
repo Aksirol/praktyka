@@ -38,7 +38,7 @@ class CopyManager(QDialog):
             self.table.setItem(row_idx, 2, QTableWidgetItem(copy['status']))
 
     @require_role(["Адміністратор", "Бібліотекар"])
-    def write_off_copy(self, *args, kwargs):
+    def write_off_copy(self, *args, **kwargs):
         current_row = self.table.currentRow()
         if current_row < 0:
             QMessageBox.warning(self, "Увага", "Оберіть примірник для списання!")

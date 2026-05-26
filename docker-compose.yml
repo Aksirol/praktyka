@@ -12,6 +12,7 @@ services:
       - ADMIN_USERNAME=sysadmin
       - ADMIN_PASSWORD=supersecret_pass
     command: python src/db/seed_data.py
+    restart: "no"
 
   # Основний застосунок
   app:

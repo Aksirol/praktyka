@@ -8,6 +8,7 @@ from src.gui.reports_view import ReportsView
 from src.services.notification_service import NotificationService
 from src.services.fine_service import FineService
 from src.services.reservation_service import ReservationService
+from src.gui.circulation_view import CirculationView
 
 
 class MainWindow(QMainWindow):
@@ -43,6 +44,9 @@ class MainWindow(QMainWindow):
         # Додавання вкладок
         self.catalog_tab = CatalogView(self.db)
         self.tabs.addTab(self.catalog_tab, "Каталог книг")
+
+        self.circulation_tab = CirculationView(self.db)
+        self.tabs.addTab(self.circulation_tab, "Обслуговування (Видача/Повернення)")
 
         self.reader_tab = ReaderRegistrationForm(self.db)
         self.tabs.addTab(self.reader_tab, "Реєстрація читачів")
