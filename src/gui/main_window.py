@@ -10,6 +10,7 @@ from src.gui.admin_view import AdminView
 from src.services.notification_service import NotificationService
 from src.services.fine_service import FineService
 from src.services.reservation_service import ReservationService
+from src.gui.reader_card_view import ReaderCardView
 
 
 class MainWindow(QMainWindow):
@@ -45,15 +46,19 @@ class MainWindow(QMainWindow):
         self.circulation_tab = CirculationView(self.db)
         self.tabs.addTab(self.circulation_tab, "Обслуговування (Видача/Повернення)")
 
-        # 3. Реєстрація читачів
+        # 3. Картка читача
+        self.reader_card_tab = ReaderCardView(self.db)
+        self.tabs.addTab(self.reader_card_tab, "Картка читача")
+
+        # 4. Реєстрація читачів
         self.reader_tab = ReaderRegistrationForm(self.db)
         self.tabs.addTab(self.reader_tab, "Реєстрація читачів")
 
-        # 4. Звіти
+        # 5. Звіти
         self.reports_tab = ReportsView(self.db)
         self.tabs.addTab(self.reports_tab, "Звіти та Налаштування")
 
-        # 5. Адміністрування (Вкладка з'являється лише для адміністратора)
+        # 6. Адміністрування (Вкладка з'являється лише для адміністратора)
         user = SessionManager.get_current_user()
         if user and user['role'] == 'Адміністратор':
             self.admin_tab = AdminView(self.db)
