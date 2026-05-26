@@ -1,0 +1,17 @@
+# docker/Dockerfile.dev
+FROM python:3.10-slim
+
+# Встановлення системних залежностей для PyQt5 (необхідно для роботи GUI-бібліотек у контейнері)
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libx11-xcb1 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Код буде монтуватися через volumes для hot-reloading
+CMD ["python", "src/main.py"]

@@ -1,0 +1,15 @@
+# docker-compose.yml
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./docs:/app/docs
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Для прокидання графічного інтерфейсу з Docker на хост-машину (якщо використовується WSL або Linux)
+      - DISPLAY=${DISPLAY}
+    network_mode: host
