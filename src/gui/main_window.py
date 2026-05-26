@@ -5,10 +5,11 @@ from src.auth.session_manager import SessionManager
 from src.gui.catalog_view import CatalogView
 from src.gui.reader_view import ReaderRegistrationForm
 from src.gui.reports_view import ReportsView
+from src.gui.circulation_view import CirculationView
+from src.gui.admin_view import AdminView
 from src.services.notification_service import NotificationService
 from src.services.fine_service import FineService
 from src.services.reservation_service import ReservationService
-from src.gui.circulation_view import CirculationView
 
 
 class MainWindow(QMainWindow):
@@ -16,14 +17,11 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.db = db_manager
 
-        # Виконання фонових автоматичних задач при старті
         self.run_background_tasks()
-
         self.init_ui()
         self.check_notifications()
 
     def run_background_tasks(self):
-        """Автоматичне скасування старих бронювань та нарахування штрафів."""
         try:
             ReservationService(self.db).cancel_expired_reservations()
             FineService(self.db).calculate_fines()
@@ -32,27 +30,34 @@ class MainWindow(QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle("Система обліку шкільної бібліотеки")
-        self.resize(1000, 700)
+        self.resize(1100, 750)
 
-        # Налаштування меню
         self.setup_menu()
 
-        # Центральний віджет з вкладками
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
 
-        # Додавання вкладок
+        # 1. Каталог
         self.catalog_tab = CatalogView(self.db)
         self.tabs.addTab(self.catalog_tab, "Каталог книг")
 
+        # 2. Обслуговування (Видача/Повернення)
         self.circulation_tab = CirculationView(self.db)
         self.tabs.addTab(self.circulation_tab, "Обслуговування (Видача/Повернення)")
 
+        # 3. Реєстрація читачів
         self.reader_tab = ReaderRegistrationForm(self.db)
         self.tabs.addTab(self.reader_tab, "Реєстрація читачів")
 
+        # 4. Звіти
         self.reports_tab = ReportsView(self.db)
         self.tabs.addTab(self.reports_tab, "Звіти та Налаштування")
+
+        # 5. Адміністрування (Вкладка з'являється лише для адміністратора)
+        user = SessionManager.get_current_user()
+        if user and user['role'] == 'Адміністратор':
+            self.admin_tab = AdminView(self.db)
+            self.tabs.addTab(self.admin_tab, "Адміністрування")
 
     def setup_menu(self):
         menubar = self.menuBar()
@@ -60,7 +65,6 @@ class MainWindow(QMainWindow):
         role = user['role'] if user else "Гість"
         username = user['username'] if user else "Невідомо"
 
-        # Меню користувача
         user_menu = menubar.addMenu(f"Профіль: {username} ({role})")
 
         logout_action = QAction("Вийти", self)
@@ -68,7 +72,6 @@ class MainWindow(QMainWindow):
         user_menu.addAction(logout_action)
 
     def check_notifications(self):
-        """Перевірка боржників та виведення нагадування для бібліотекаря."""
         user = SessionManager.get_current_user()
         if user and user['role'] in ['Адміністратор', 'Бібліотекар']:
             service = NotificationService(self.db)
@@ -81,4 +84,3 @@ class MainWindow(QMainWindow):
     def logout(self):
         SessionManager.logout()
         self.close()
-        # Виклик глобальної функції для повернення до вікна логіну обробляється у main.py

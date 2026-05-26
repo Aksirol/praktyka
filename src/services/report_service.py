@@ -101,3 +101,27 @@ class ReportService:
         filename = f"popular_books_{datetime.now().strftime('%Y-%m-%d')}.pdf"
         filepath = self._generate_pdf(filename, "Звіт: Топ-10 популярних книг", headers, data)
         return True, f"Звіт згенеровано: {filepath}"
+
+    def generate_movement_report(self, start_date: str, end_date: str) -> tuple[bool, str]:
+        """Звіт про рух фонду (видачі та повернення) за обраний період."""
+        from datetime import datetime
+        query = """
+            SELECT b.title, c.inventory_number, l.issue_date, l.return_date, 
+                   r.last_name || ' ' || r.first_name as reader_name
+            FROM LOANS l
+            JOIN COPIES c ON l.copy_id = c.id
+            JOIN BOOKS b ON c.book_id = b.id
+            JOIN READERS r ON l.reader_id = r.id
+            WHERE l.issue_date BETWEEN ? AND ? 
+               OR l.return_date BETWEEN ? AND ?
+            ORDER BY l.issue_date DESC
+        """
+        rows = self.db.fetch_all(query, (start_date, end_date, start_date, end_date))
+
+        data = [[row['title'], row['inventory_number'], str(row['issue_date']),
+                 str(row['return_date'] or "Не повернуто"), row['reader_name']] for row in rows]
+        headers = ["Книга", "Інв. №", "Дата видачі", "Дата повернення", "Читач"]
+
+        filename = f"movement_report_{datetime.now().strftime('%Y-%m-%d_%H%M%S')}.pdf"
+        filepath = self._generate_pdf(filename, f"Рух фонду ({start_date} до {end_date})", headers, data)
+        return True, f"Звіт згенеровано: {filepath}"
