@@ -49,17 +49,17 @@ class ReportsView(QWidget):
         self.setLayout(layout)
 
     @require_role(["Адміністратор", "Бібліотекар"])
-    def create_overdue_report(self):
+    def create_overdue_report(self, *args, **kwargs):
         success, msg = self.report_service.generate_overdue_report()
         QMessageBox.information(self, "Результат", msg)
 
     @require_role(["Адміністратор", "Бібліотекар"])
-    def create_popular_report(self):
+    def create_popular_report(self, *args, **kwargs):
         success, msg = self.report_service.generate_popular_books_report()
         QMessageBox.information(self, "Результат", msg)
 
     @require_role(["Адміністратор"])
-    def do_backup(self):
+    def do_backup(self, *args, **kwargs):
         dest_dir = QFileDialog.getExistingDirectory(self, "Оберіть папку для збереження копії")
         if dest_dir:
             success, msg = self.backup_service.create_backup(dest_dir)
@@ -69,7 +69,7 @@ class ReportsView(QWidget):
                 QMessageBox.critical(self, "Помилка", msg)
 
     @require_role(["Адміністратор"])
-    def do_restore(self):
+    def do_restore(self, *args, **kwargs):
         source_file, _ = QFileDialog.getOpenFileName(self, "Оберіть файл резервної копії", "", "SQLite Database (*.db)")
         if source_file:
             reply = QMessageBox.question(self, 'Підтвердження',

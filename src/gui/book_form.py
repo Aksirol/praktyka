@@ -56,7 +56,7 @@ class BookForm(QDialog):
             self.genre_cb.addItem(g['name'], g['id'])
 
     @require_role(["Адміністратор", "Бібліотекар"])
-    def save_book(self):
+    def save_book(self, *args, kwargs):
         title = self.title_input.text().strip()
         author_id = self.author_cb.currentData()
         genre_id = self.genre_cb.currentData()

@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLineEdit,
                              QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QComboBox)
 from src.db.db_manager import DatabaseManager
 from src.auth.session_manager import SessionManager
+from src.gui.book_form import BookForm
 
 
 class CatalogView(QWidget):
@@ -37,6 +38,7 @@ class CatalogView(QWidget):
         self.manage_layout = QHBoxLayout()
         self.add_book_btn = QPushButton("Додати книгу")
         self.manage_layout.addWidget(self.add_book_btn)
+        self.add_book_btn.clicked.connect(self.open_book_form)
         layout.addLayout(self.manage_layout)
 
         # Перевірка прав доступу для приховування кнопок керування
@@ -87,3 +89,9 @@ class CatalogView(QWidget):
             self.table.setItem(row_idx, 3, QTableWidgetItem(book['genre_name'] or "Невідомо"))
             self.table.setItem(row_idx, 4, QTableWidgetItem(book['isbn'] or "-"))
             self.table.setItem(row_idx, 5, QTableWidgetItem(str(book['available_copies'])))
+
+    def open_book_form(self):
+        dialog = BookForm(self.db, self)
+        # Якщо книгу успішно додано (dialog.exec_() повертає 1), оновлюємо таблицю
+        if dialog.exec_():
+            self.load_data()
